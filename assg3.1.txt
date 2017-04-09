@@ -1,0 +1,115 @@
+	.file	"assg3.c"
+	.text
+	.globl	mult
+	.type	mult, @function
+mult:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp				Pushes the base pointer of the main stack frame on the stack so that 							the sub-routine stack can be allocated.
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp			Now stack pointer of the main stack points to the base pointer of 							the sub-routine stack
+	.cfi_def_cfa_register 6
+	movl	%edi, -20(%rbp)			int a & int b that are passed as edi and esi are pushed on the new 		movl	%esi, -24(%rbp)			sub-routine stack at rbp-20 and rbp-24 address
+	
+	movl	-24(%rbp), %eax			Values of a and b copied on the temporary registers 
+	movl	-20(%rbp), %edx			for calculations
+
+	movl	%eax, %ecx			Values being transfered between the temporary registers
+
+	sall	%cl, %edx			Calculation of term a<<b
+
+	movl	%edx, %eax			
+	movl	%eax, -4(%rbp)			assigning the value to the ret variable
+	movl	-4(%rbp), %eax
+	popq	%rbp				Leaving the sub-routine stack
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	mult, .-mult
+	.section	.rodata
+.LC0:
+	.string	"%d"
+.LC1:
+	.string	"%d\n"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB1:
+	.cfi_startproc
+	pushq 	%rbp                        	Push the data stored(quadword) in rbp (base pointer)register on the 							stack.Thus storing the base pointer to the current stack frame.
+
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+					
+	movq 	%rsp, %rbp			Point the base pointer to the top of the current stack frame. (rsp 							register stores the top of the current stack frame.)
+
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp			Stack pointer shifts downwards by an offset 32.Thus allocating 32 							bytes for the callee stack frame. (Stack grows downwards).
+					
+	movq	%fs:40, %rax			Reaching the memory address at an offset of 40 from far segment. And 							moving that data to rax register
+
+	movq	%rax, -8(%rbp)			Allocating 8 bytes for return type of the main function
+
+	xorl	%eax, %eax			This command is used to clear the contents stored in the register 							eax. As XOR of two same quantities nullifies it. However, the flag 							register status may not be same when compared to the flag register 							status after the command , movq $0, %eax
+
+	movl	$1, -12(%rbp)			Assigning a value of 1 to "int sum". and also allocating memory 
+				
+	leaq	-20(%rbp), %rax			Copying the data stored at location rbp-20 to memory address pointed 							by rax// getting address of int a
+
+	movq	%rax, %rsi			Storing the value of rax in rsi for further use of rax
+
+	movl	$.LC0, %edi			Moves the "%d" String in the edi register
+
+	movl	$0, %eax			Makes the content in eax register 0
+
+	call	__isoc99_scanf 			Calls the scanning function. 
+	leaq	-16(%rbp), %rax			Passes the content on the stack to the memory whose address is 							stored in rax// Getting the address of int b
+
+	movq	%rax, %rsi			rsi gets the scanned value. That is variable "a" is scanned.
+
+	movl	$.LC0, %edi			Moves the "%d" String in the edi register
+		
+	movl	$0, %eax			Makes the content in eax register 0
+		
+	call	__isoc99_scanf			Calls the scanning function.
+
+	movl	-16(%rbp), %edx			moving the value of b in edx register
+				
+	movl	-20(%rbp), %eax			moving the value of a in eax register
+
+	movl	%edx, %esi			moving the value of edx register in esi register
+
+	movl	%eax, %edi			moving the value of eax register in edi register
+	call	mult				Calling the mult sub-routine
+
+	movl	%eax, -12(%rbp)			Copying the data in eax register to rbp-12 							location.That is the value calculated is stored in the sum 							variable		
+
+	movl	-12(%rbp), %eax			eax is retaining its value
+			
+	movl	%eax, %esi			data getting copied from eax to esi
+
+	movl	$.LC1, %edi			Gets the string tag and stores it in the edi register
+
+	movl	$0, %eax			Nullifies eax
+
+	call	printf				Calls the printf function.
+
+	movl	$0, %eax			Nullifies eax
+
+	movq	-8(%rbp), %rcx			pushes the value of return to the rcx register
+
+	xorq	%fs:40, %rcx			
+	je	.L5
+	call	__stack_chk_fail
+.L5:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE1:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 5.4.0-6ubuntu1~16.04.4) 5.4.0 20160609"
+	.section	.note.GNU-stack,"",@progbits
