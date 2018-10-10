@@ -1,2 +1,2 @@
 # CPL-Assgs
-Semester 4 assignments
+This is a repository of assignments given in concepts of programming languages in forth semester.
